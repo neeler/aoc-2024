@@ -1,4 +1,4 @@
-# AoC 2023
+# AoC 2024
 
 ## Initial Setup
 
