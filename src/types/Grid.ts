@@ -1,5 +1,16 @@
 import kleur from 'kleur';
 
+const directions: Record<string, [number, number]> = {
+    up: [-1, 0],
+    down: [1, 0],
+    left: [0, -1],
+    right: [0, 1],
+    upLeft: [-1, -1],
+    upRight: [-1, 1],
+    downLeft: [1, -1],
+    downRight: [1, 1],
+} as const;
+
 export class Grid<T> {
     private readonly grid: (T | undefined)[][] = [];
     private readonly minX: number;
@@ -29,8 +40,8 @@ export class Grid<T> {
     }) {
         this.grid = Array.from({ length: maxY - minY + 1 }, (_, row) =>
             Array.from({ length: maxX - minX + 1 }, (_, col) =>
-                defaultValue?.(row, col)
-            )
+                defaultValue?.(row, col),
+            ),
         );
         this.minX = minX;
         this.minY = minY;
@@ -47,7 +58,7 @@ export class Grid<T> {
             row: number;
             col: number;
             grid: Grid<TNode>;
-        }) => TNode
+        }) => TNode,
     ): Grid<TNode> {
         const width = Math.max(...arr.map((row) => row.length));
         const height = arr.length;
@@ -73,12 +84,16 @@ export class Grid<T> {
                         row: iRow,
                         col: iCol,
                         grid,
-                    })
+                    }),
                 );
             });
         });
 
         return grid;
+    }
+
+    static from2DStringArray(arr: string[][]): Grid<string> {
+        return Grid.from2DArray(arr, ({ input }) => input);
     }
 
     static orthogonalNeighbors: [number, number][] = [
@@ -95,6 +110,17 @@ export class Grid<T> {
         [-1, 1],
         [-1, -1],
     ];
+
+    static readonly directions = {
+        up: [-1, 0],
+        down: [1, 0],
+        left: [0, -1],
+        right: [0, 1],
+        upLeft: [-1, -1],
+        upRight: [-1, 1],
+        downLeft: [1, -1],
+        downRight: [1, 1],
+    } as const satisfies Record<string, [number, number]>;
 
     getAt(rowIndex: number, colIndex: number) {
         return this.grid[rowIndex - this.minY]?.[colIndex - this.minX];
@@ -120,7 +146,7 @@ export class Grid<T> {
 
     reduce<TAcc>(
         fn: (acc: TAcc, data: T | undefined, row: number, col: number) => TAcc,
-        initialValue: TAcc
+        initialValue: TAcc,
     ) {
         let acc = initialValue;
         this.grid.forEach((row, rowIndex) => {
@@ -144,7 +170,7 @@ export class Grid<T> {
     }
 
     find(
-        fn: (data: T | undefined, row: number, col: number) => boolean
+        fn: (data: T | undefined, row: number, col: number) => boolean,
     ): T | undefined {
         for (const [iRow, row] of this.grid.entries()) {
             for (const [iCol, node] of row.entries()) {
@@ -157,7 +183,7 @@ export class Grid<T> {
     }
 
     findCoords(
-        fn: (data: T | undefined, row: number, col: number) => boolean
+        fn: (data: T | undefined, row: number, col: number) => boolean,
     ): { row: number; col: number } | undefined {
         for (const [iRow, row] of this.grid.entries()) {
             for (const [iCol, node] of row.entries()) {
@@ -172,6 +198,15 @@ export class Grid<T> {
         return undefined;
     }
 
+    getNeighborInDirection(
+        row: number,
+        col: number,
+        direction: keyof typeof Grid.directions,
+    ) {
+        const [dRow, dCol] = Grid.directions[direction];
+        return this.getAt(row + dRow, col + dCol);
+    }
+
     getOrthogonalNeighborsOf(row: number, col: number) {
         return Grid.orthogonalNeighbors.reduce<T[]>(
             (neighbors, [rowDiff, colDiff]) => {
@@ -181,7 +216,7 @@ export class Grid<T> {
                 }
                 return neighbors;
             },
-            []
+            [],
         );
     }
 
@@ -194,7 +229,7 @@ export class Grid<T> {
                 }
                 return neighbors;
             },
-            []
+            [],
         );
     }
 
@@ -223,18 +258,18 @@ export class Grid<T> {
             .map(
                 (row, y) =>
                     `${kleur.cyan(
-                        (y + this.minY).toString().padStart(padding, ' ')
+                        (y + this.minY).toString().padStart(padding, ' '),
                     )} ${row
                         .slice(
-                            (this.minXUpdated ?? 0) > 0 ? this.minXUpdated : 0
+                            (this.minXUpdated ?? 0) > 0 ? this.minXUpdated : 0,
                         )
                         .map(
                             (d, x) =>
                                 (drawFn ?? this.drawFn)?.(d) ??
                                 d?.toString?.() ??
-                                this.blank
+                                this.blank,
                         )
-                        .join('')}`
+                        .join('')}`,
             )
             .join('\n');
     }
@@ -246,9 +281,9 @@ export class Grid<T> {
                     .slice((this.minXUpdated ?? 0) > 0 ? this.minXUpdated : 0)
                     .map(
                         (d, x) =>
-                            this.drawFn?.(d) ?? d?.toString?.() ?? this.blank
+                            this.drawFn?.(d) ?? d?.toString?.() ?? this.blank,
                     )
-                    .join('')
+                    .join(''),
             )
             .join('');
     }
