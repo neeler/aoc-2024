@@ -1,8 +1,8 @@
-export function parseIntList(fileData: string, delimiter = ','): number[] {
+export function parseNumberList(fileData: string, delimiter = ','): number[] {
     return fileData
         .split(delimiter)
         .filter((s) => s)
-        .map((s) => Number.parseInt(s, 10));
+        .map(Number);
 }
 
 export function splitFilter(fileData: string, delimiter = '\n'): string[] {

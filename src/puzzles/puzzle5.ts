@@ -1,7 +1,7 @@
 import { Puzzle } from './Puzzle';
 import { sum } from '~/util/arithmetic';
-import { splitFilter, parseIntList } from '~/util/parsing';
-import { itemToIndexMap } from '~/util/collections';
+import { splitFilter, parseNumberList } from '~/util/parsing';
+import { itemToIndexMap, middleItem } from '~/util/collections';
 
 type Rule = [number, number];
 type Update = number[];
@@ -20,7 +20,7 @@ export const puzzle5 = new Puzzle({
         });
 
         const allUpdates = splitFilter(updateSection).map(
-            (s): Update => parseIntList(s),
+            (s): Update => parseNumberList(s),
         );
 
         const updateIndexMaps = allUpdates.reduce((map, update) => {
@@ -47,7 +47,7 @@ export const puzzle5 = new Puzzle({
         };
     },
     part1: ({ correctUpdates }) => {
-        return sum(correctUpdates.map(middlePage));
+        return sum(correctUpdates.map(middleItem));
     },
     part2: ({ incorrectUpdates, rules, updateIndexMaps }) => {
         return incorrectUpdates.reduce((sum, update) => {
@@ -55,22 +55,10 @@ export const puzzle5 = new Puzzle({
             const relevantRules = rules.filter(([n1, n2]) => {
                 return pageMap.has(n1) && pageMap.has(n2);
             });
-            const validOrdering = buildValidOrdering(relevantRules);
-            const fixedUpdate = validOrdering.filter((page) =>
-                pageMap.has(page),
-            );
-
-            return sum + middlePage(fixedUpdate);
+            return sum + middleItem(buildValidOrdering(relevantRules));
         }, 0);
     },
 });
-
-function middlePage(pages: Update) {
-    if (!pages.length) {
-        throw new Error('No pages');
-    }
-    return pages[Math.floor(pages.length / 2)]!;
-}
 
 function updateIsValid(pageMap: Map<number, number>, rules: Rule[]) {
     return rules.every(
