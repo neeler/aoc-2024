@@ -1,11 +1,20 @@
+/**
+ * Returns the sum of the numbers in the array.
+ */
 export function sum(numbers: number[]): number {
     return numbers.reduce((sumSoFar, n) => sumSoFar + n, 0);
 }
 
+/**
+ * Returns the product of the numbers in the array.
+ */
 export function product(numbers: number[]): number {
     return numbers.reduce((productSoFar, n) => productSoFar * n, 1);
 }
 
+/**
+ * Returns the greatest common divisor of a and b.
+ */
 export function gcd(a: number, b: number): number {
     if (a === 0) {
         return b;
@@ -13,6 +22,9 @@ export function gcd(a: number, b: number): number {
     return gcd(b % a, a);
 }
 
+/**
+ * Returns the least common multiple of a and b.
+ */
 export function lcm(a: number, b: number) {
     if (!a || !b) {
         return 0;
@@ -20,6 +32,9 @@ export function lcm(a: number, b: number) {
     return (a * b) / gcd(a, b);
 }
 
+/**
+ * Returns the number n, modulo the modulus. The result is always non-negative.
+ */
 export function mod(n: number, modulus: number) {
     return ((n % modulus) + modulus) % modulus;
 }
