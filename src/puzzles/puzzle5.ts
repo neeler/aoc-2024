@@ -2,6 +2,8 @@ import { Puzzle } from './Puzzle';
 import { sum } from '~/util/arithmetic';
 import { splitFilter, parseNumberList } from '~/util/parsing';
 import { itemToIndexMap, middleItem } from '~/util/collections';
+import { CustomSet } from '~/types/CustomSet';
+import { isUndefined } from '~/util/nullish';
 
 type Rule = [number, number];
 type Update = number[];
@@ -23,97 +25,59 @@ export const puzzle5 = new Puzzle({
             (s): Update => parseNumberList(s),
         );
 
-        const updateIndexMaps = allUpdates.reduce((map, update) => {
-            map.set(update, itemToIndexMap(update));
-            return map;
-        }, new Map<Update, Map<number, number>>());
-
-        const correctUpdates: Update[] = [];
-        const incorrectUpdates: Update[] = [];
+        const validUpdates: Update[] = [];
+        const invalidUpdates: Update[] = [];
         allUpdates.forEach((update) => {
-            if (updateIsValid(updateIndexMaps.get(update)!, rules)) {
-                correctUpdates.push(update);
+            const pageMap = itemToIndexMap(update);
+            if (
+                rules.every(([n1, n2]) => {
+                    const i1 = pageMap.get(n1);
+                    const i2 = pageMap.get(n2);
+                    return isUndefined(i1) || isUndefined(i2) || i1 < i2;
+                })
+            ) {
+                validUpdates.push(update);
             } else {
-                incorrectUpdates.push(update);
+                invalidUpdates.push(update);
             }
         });
 
         return {
             rules,
             allUpdates,
-            correctUpdates,
-            incorrectUpdates,
-            updateIndexMaps,
+            validUpdates,
+            invalidUpdates,
         };
     },
-    part1: ({ correctUpdates }) => {
-        return sum(correctUpdates.map(middleItem));
+    part1: ({ validUpdates }) => {
+        return sum(validUpdates.map(middleItem));
     },
-    part2: ({ incorrectUpdates, rules, updateIndexMaps }) => {
-        return incorrectUpdates.reduce((sum, update) => {
-            const pageMap = updateIndexMaps.get(update)!;
-            const relevantRules = rules.filter(([n1, n2]) => {
-                return pageMap.has(n1) && pageMap.has(n2);
-            });
-            return sum + middleItem(buildValidOrdering(relevantRules));
+    part2: ({ invalidUpdates, rules }) => {
+        const ruleSet = rules.reduce(
+            (set, [n1, n2]) => {
+                set.add([n1, n2]);
+                return set;
+            },
+            new CustomSet<Rule>({
+                getKey: ([n1, n2]) => `${n1},${n2}`,
+            }),
+        );
+
+        return invalidUpdates.reduce((sum, update) => {
+            return (
+                sum +
+                middleItem(
+                    update.sort((a, b) => {
+                        if (ruleSet.has([a, b])) {
+                            return -1;
+                        }
+                        if (ruleSet.has([b, a])) {
+                            return 1;
+                        }
+                        return 0;
+                    }),
+                )
+            );
         }, 0);
     },
 });
-
-function updateIsValid(pageMap: Map<number, number>, rules: Rule[]) {
-    return rules.every(
-        ([n1, n2]) =>
-            !pageMap.has(n1) ||
-            !pageMap.has(n2) ||
-            (pageMap.get(n1) ?? 0) < (pageMap.get(n2) ?? 0),
-    );
-}
-
-function buildValidOrdering(rules: Rule[]) {
-    const beforeAfterMap = new Map<number, Set<number>>();
-    rules.forEach((rule) => {
-        const afterSet = beforeAfterMap.get(rule[0]) ?? new Set();
-        afterSet.add(rule[1]);
-        beforeAfterMap.set(rule[0], afterSet);
-    });
-
-    // Iteratively add all numbers that are after the numbers that are after the numbers that are after...
-    for (const afterSet of beforeAfterMap.values()) {
-        const queue = Array.from(afterSet);
-        while (queue.length) {
-            const x = queue.pop()!;
-            const afterAfterSet = beforeAfterMap.get(x) ?? new Set();
-            for (const y of afterAfterSet) {
-                if (!afterSet.has(y)) {
-                    afterSet.add(y);
-                    queue.push(y);
-                }
-            }
-        }
-    }
-
-    // Iteratively build the valid ordering based on the before/after rules
-    const validOrdering: Update = [];
-    for (const n of new Set(rules.flat())) {
-        const numsAfter = beforeAfterMap.get(n);
-
-        if (!numsAfter) {
-            validOrdering.push(n);
-        } else {
-            const minIndex = Math.min(
-                ...numsAfter
-                    .values()
-                    .map((m) => validOrdering.indexOf(m))
-                    .filter((i) => i !== -1),
-            );
-            validOrdering.splice(minIndex, 0, n);
-        }
-    }
-
-    // Sanity check that the ordering is valid
-    if (!updateIsValid(itemToIndexMap(validOrdering), rules)) {
-        throw new Error('Invalid ordering');
-    }
-
-    return validOrdering;
-}
