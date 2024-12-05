@@ -16,10 +16,9 @@ export const puzzle5 = new Puzzle({
             '\n\n',
         );
 
-        const rules = splitFilter(ruleSection).map((s): Rule => {
-            const [n1 = '', n2 = ''] = s.split('|');
-            return [Number.parseInt(n1, 10), Number.parseInt(n2, 10)];
-        });
+        const rules = splitFilter(ruleSection).map(
+            (s) => parseNumberList(s, '|') as Rule,
+        );
 
         const allUpdates = splitFilter(updateSection).map(
             (s): Update => parseNumberList(s),
