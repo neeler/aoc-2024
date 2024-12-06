@@ -10,8 +10,17 @@ export class CustomSet<TData, TKey = string> {
     constructor(
         private readonly config: {
             getKey: (item: TData) => TKey;
-        }
+        },
     ) {}
+
+    static fromArray<TData, TKey = string>(
+        arr: TData[],
+        getKey: (item: TData) => TKey,
+    ) {
+        const customSet = new CustomSet<TData, TKey>({ getKey });
+        arr.forEach((item) => customSet.add(item));
+        return customSet;
+    }
 
     add(item: TData) {
         const key = this.config.getKey(item);

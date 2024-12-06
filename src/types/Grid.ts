@@ -1,6 +1,7 @@
 import kleur from 'kleur';
+import { CustomSet } from '~/types/CustomSet';
 
-const directions: Record<string, [number, number]> = {
+export const Directions = {
     up: [-1, 0],
     down: [1, 0],
     left: [0, -1],
@@ -10,6 +11,10 @@ const directions: Record<string, [number, number]> = {
     downLeft: [1, -1],
     downRight: [1, 1],
 } as const;
+export type Direction = keyof typeof Directions;
+export const DirectionKeys = Object.fromEntries(
+    Object.entries(Directions).map(([key]) => [key, key]),
+) as Record<Direction, Direction>;
 
 export class Grid<T> {
     private readonly grid: (T | undefined)[][] = [];
@@ -19,7 +24,8 @@ export class Grid<T> {
     readonly height: number;
     private minXUpdated: number | undefined;
     private blank: string;
-    private drawFn?: (data: T | undefined) => string;
+    private drawFn?: (data: T | undefined, row: number, col: number) => string;
+    private defaultValue?: (row: number, col: number) => T;
 
     constructor({
         minX = 0,
@@ -36,13 +42,14 @@ export class Grid<T> {
         maxY: number;
         defaultValue?: (row: number, col: number) => T;
         blank?: string;
-        drawFn?: (data: T | undefined) => string;
+        drawFn?: (data: T | undefined, row: number, col: number) => string;
     }) {
         this.grid = Array.from({ length: maxY - minY + 1 }, (_, row) =>
             Array.from({ length: maxX - minX + 1 }, (_, col) =>
                 defaultValue?.(row, col),
             ),
         );
+        this.defaultValue = defaultValue;
         this.minX = minX;
         this.minY = minY;
         this.width = maxX + 1;
@@ -122,6 +129,25 @@ export class Grid<T> {
         downRight: [1, 1],
     } as const satisfies Record<string, [number, number]>;
 
+    clone() {
+        const clonedGrid = new Grid<T>({
+            minX: this.minX,
+            minY: this.minY,
+            maxX: this.minX + this.width - 1,
+            maxY: this.minY + this.height - 1,
+            blank: this.blank,
+            drawFn: this.drawFn,
+        });
+        this.forEach((node, row, col) => {
+            if (node) clonedGrid.setAt(row, col, node);
+        });
+        return clonedGrid;
+    }
+
+    get({ row, col }: { row: number; col: number }) {
+        return this.getAt(row, col);
+    }
+
     getAt(rowIndex: number, colIndex: number) {
         return this.grid[rowIndex - this.minY]?.[colIndex - this.minX];
     }
@@ -159,10 +185,25 @@ export class Grid<T> {
 
     filter(fn: (data: T, row: number, col: number) => boolean) {
         let filtered: T[] = [];
-        this.grid.forEach((row, rowIndex) => {
-            row.forEach((node, colIndex) => {
-                if (node && fn(node, rowIndex, colIndex)) {
+        this.grid.forEach((row, iRow) => {
+            row.forEach((node, iCol) => {
+                if (node && fn(node, iRow, iCol)) {
                     filtered.push(node);
+                }
+            });
+        });
+        return filtered;
+    }
+
+    filterCoords(fn: (data: T, row: number, col: number) => boolean) {
+        let filtered: { row: number; col: number }[] = [];
+        this.grid.forEach((row, iRow) => {
+            row.forEach((node, iCol) => {
+                if (node && fn(node, iRow, iCol)) {
+                    filtered.push({
+                        row: iRow,
+                        col: iCol,
+                    });
                 }
             });
         });
@@ -198,13 +239,36 @@ export class Grid<T> {
         return undefined;
     }
 
-    getNeighborInDirection(
+    getCoordsInDirection(
         row: number,
         col: number,
-        direction: keyof typeof Grid.directions,
+        direction: Direction,
+        distance = 1,
     ) {
         const [dRow, dCol] = Grid.directions[direction];
+        return {
+            row: row + dRow * distance,
+            col: col + dCol * distance,
+        };
+    }
+
+    getNeighborInDirection(row: number, col: number, direction: Direction) {
+        const [dRow, dCol] = Grid.directions[direction];
         return this.getAt(row + dRow, col + dCol);
+    }
+
+    swapWithNeighborInDirection(
+        row: number,
+        col: number,
+        direction: Direction,
+    ) {
+        const [dRow, dCol] = Grid.directions[direction];
+        const node = this.getAt(row, col);
+        const neighbor = this.getAt(row + dRow, col + dCol);
+        if (node && neighbor) {
+            this.setAt(row + dRow, col + dCol, node);
+            this.setAt(row, col, neighbor);
+        }
     }
 
     getOrthogonalNeighborsOf(row: number, col: number) {
@@ -251,7 +315,9 @@ export class Grid<T> {
         return this.grid.map((row, rowIndex) => fn(row, rowIndex));
     }
 
-    toString(drawFn?: (data: T | undefined) => string) {
+    toString(
+        drawFn?: (data: T | undefined, row: number, col: number) => string,
+    ) {
         const padding = Math.max(4, this.height.toString().length + 1);
 
         return this.grid
@@ -260,12 +326,12 @@ export class Grid<T> {
                     `${kleur.cyan(
                         (y + this.minY).toString().padStart(padding, ' '),
                     )} ${row
-                        .slice(
-                            (this.minXUpdated ?? 0) > 0 ? this.minXUpdated : 0,
-                        )
+                        // .slice(
+                        //     (this.minXUpdated ?? 0) > 0 ? this.minXUpdated : 0,
+                        // )
                         .map(
                             (d, x) =>
-                                (drawFn ?? this.drawFn)?.(d) ??
+                                (drawFn ?? this.drawFn)?.(d, y, x) ??
                                 d?.toString?.() ??
                                 this.blank,
                         )
@@ -281,16 +347,26 @@ export class Grid<T> {
                     .slice((this.minXUpdated ?? 0) > 0 ? this.minXUpdated : 0)
                     .map(
                         (d, x) =>
-                            this.drawFn?.(d) ?? d?.toString?.() ?? this.blank,
+                            this.drawFn?.(d, y, x) ??
+                            d?.toString?.() ??
+                            this.blank,
                     )
                     .join(''),
             )
             .join('');
     }
 
-    draw(drawFn?: (data: T | undefined) => string) {
+    draw(drawFn?: (data: T | undefined, row: number, col: number) => string) {
         console.log(`
 ${this.toString(drawFn)}
 `);
+    }
+}
+
+export class GridPosSet extends CustomSet<{ row: number; col: number }> {
+    constructor() {
+        super({
+            getKey: (point) => `${point.row},${point.col}`,
+        });
     }
 }
