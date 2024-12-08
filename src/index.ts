@@ -7,22 +7,21 @@ import {
     puzzle5,
     puzzle6,
     puzzle7,
+    puzzle8,
 } from '~/puzzles';
 import { Timer } from '~/util/Timer';
 
 async function start() {
     const timer = new Timer();
 
-    // await puzzle1.run();
-    // await puzzle2.run();
-    // await puzzle3.run();
-    // await puzzle4.run();
-    // await puzzle5.run();
-    // await puzzle6.run();
-    await puzzle7.run({
-        example: true,
-        mainProblem: true,
-    });
+    await puzzle1.run();
+    await puzzle2.run();
+    await puzzle3.run();
+    await puzzle4.run();
+    await puzzle5.run();
+    await puzzle6.run();
+    await puzzle7.run();
+    await puzzle8.run();
 
     console.log(kleur.cyan(`All puzzles ran in ${timer.time}.`));
 }
