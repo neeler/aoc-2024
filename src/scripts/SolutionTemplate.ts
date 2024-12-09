@@ -1,10 +1,11 @@
 export function SolutionTemplate(day: number) {
     return `import { Puzzle } from './Puzzle';
+import { splitFilter } from '~/util/parsing';
 
 export const puzzle${day} = new Puzzle({
     day: ${day},
     parseInput: (fileData) => {
-        return fileData.split('\\n').filter((s) => s);
+        return splitFilter(fileData);
     },
     part1: (data) => {
         console.log(data);
