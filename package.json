@@ -7,10 +7,11 @@
     "dev": "nodemon ./src/index.ts",
     "setup": "node -r @swc-node/register src/scripts/setup.ts",
     "prebuild": "npm run clean",
-    "build": "swc src -d dist",
+    "build": "swc src -d dist & npm run copyAssets",
     "clean": "npx rimraf dist",
+    "copyAssets": "node -r @swc-node/register src/scripts/copyAssets.ts",
     "prestart": "npm run build",
-    "start": "node ./dist/index.js",
+    "start": "node ./dist/src/index.js",
     "postinstall": "npm run setup",
     "lint:es": "eslint .",
     "lint:fix": "eslint . --fix"
