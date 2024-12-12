@@ -22,7 +22,7 @@ export const puzzle6 = new Puzzle({
     },
     part1: (grid) => {
         const guardPath = walkGrid(grid);
-        return guardPath.size();
+        return guardPath.size;
     },
     part2: (grid) => {
         let obstaclePositions = 0;

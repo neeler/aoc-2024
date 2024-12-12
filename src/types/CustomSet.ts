@@ -34,6 +34,10 @@ export class CustomSet<TData, TKey = string> {
         return this.itemMap.get(key);
     }
 
+    getLike(item: TData) {
+        return this.get(this.config.getKey(item));
+    }
+
     delete(item: TData) {
         const key = this.config.getKey(item);
         this.deleteKey(key);
@@ -65,7 +69,7 @@ export class CustomSet<TData, TKey = string> {
         return [...this.itemMap.values()];
     }
 
-    size() {
+    get size() {
         return this.itemMap.size;
     }
 }
