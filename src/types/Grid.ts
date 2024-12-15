@@ -15,6 +15,12 @@ export type Direction = keyof typeof Directions;
 export const DirectionKeys = Object.fromEntries(
     Object.entries(Directions).map(([key]) => [key, key]),
 ) as Record<Direction, Direction>;
+export const CharDirectionMap: Record<string, Direction> = {
+    '^': 'up',
+    v: 'down',
+    '<': 'left',
+    '>': 'right',
+};
 
 export class Grid<T> {
     private readonly grid: (T | undefined)[][] = [];
@@ -144,7 +150,7 @@ export class Grid<T> {
         return clonedGrid;
     }
 
-    get({ row, col }: { row: number; col: number }) {
+    get({ row, col }: GridCoordinate) {
         return this.getAt(row, col);
     }
 
@@ -196,7 +202,7 @@ export class Grid<T> {
     }
 
     filterCoords(fn: (data: T, row: number, col: number) => boolean) {
-        let filtered: { row: number; col: number }[] = [];
+        let filtered: GridCoordinate[] = [];
         this.grid.forEach((row, iRow) => {
             row.forEach((node, iCol) => {
                 if (node && fn(node, iRow, iCol)) {
@@ -225,7 +231,7 @@ export class Grid<T> {
 
     findCoords(
         fn: (data: T | undefined, row: number, col: number) => boolean,
-    ): { row: number; col: number } | undefined {
+    ): GridCoordinate | undefined {
         for (const [iRow, row] of this.grid.entries()) {
             for (const [iCol, node] of row.entries()) {
                 if (fn(node, iRow, iCol)) {
@@ -244,7 +250,7 @@ export class Grid<T> {
         col: number,
         direction: Direction,
         distance = 1,
-    ) {
+    ): GridCoordinate {
         const [dRow, dCol] = Grid.directions[direction];
         return {
             row: row + dRow * distance,
@@ -369,4 +375,9 @@ export class GridPosSet extends CustomSet<{ row: number; col: number }> {
             getKey: (point) => `${point.row},${point.col}`,
         });
     }
+}
+
+export interface GridCoordinate {
+    row: number;
+    col: number;
 }
