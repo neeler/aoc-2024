@@ -10,7 +10,7 @@ export async function fetchPuzzleInput(
         onFailure,
     }: {
         onFailure?: () => void;
-    }
+    },
 ) {
     const dataFolder = createDirIfNotExists('../../data');
 
@@ -24,7 +24,7 @@ export async function fetchPuzzleInput(
 
     if (existsSync(filePath) && statSync(filePath).size > 0) {
         console.log(
-            kleur.yellow(`Input for AoC ${year} day ${day} already fetched.`)
+            kleur.yellow(`Input for AoC ${year} day ${day} already fetched.`),
         );
         return;
     }
@@ -35,7 +35,7 @@ export async function fetchPuzzleInput(
             headers: {
                 cookie: `session=${process.env.AOC_SESSION_KEY}`,
             },
-        }
+        },
     );
 
     if (response.status !== 200) {
@@ -49,8 +49,8 @@ https://adventofcode.com
 ` +
                     kleur.bold(
                         `Restart the script after changing the .env file.
-`
-                    )
+`,
+                    ),
             );
         } else if (response.status > 500) {
             console.log(kleur.red('SERVER ERROR'));

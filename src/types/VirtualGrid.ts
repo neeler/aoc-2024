@@ -77,7 +77,7 @@ export class VirtualGrid<T> {
 
     reduce<TAcc>(
         fn: (acc: TAcc, data: T | undefined, row: number, col: number) => TAcc,
-        initialValue: TAcc
+        initialValue: TAcc,
     ) {
         let acc = initialValue;
         for (let rowIndex = this.minY; rowIndex <= this.maxY; rowIndex += 1) {
@@ -90,7 +90,7 @@ export class VirtualGrid<T> {
                     acc,
                     this.getAt(rowIndex, colIndex),
                     rowIndex,
-                    colIndex
+                    colIndex,
                 );
             }
         }
@@ -116,7 +116,7 @@ export class VirtualGrid<T> {
     }
 
     find(
-        fn: (data: T | undefined, row: number, col: number) => boolean
+        fn: (data: T | undefined, row: number, col: number) => boolean,
     ): T | undefined {
         for (let rowIndex = this.minY; rowIndex <= this.maxY; rowIndex += 1) {
             for (
@@ -145,7 +145,7 @@ export class VirtualGrid<T> {
                 }
                 return neighbors;
             },
-            []
+            [],
         );
     }
 
@@ -160,13 +160,13 @@ export class VirtualGrid<T> {
                 }
                 return neighbors;
             },
-            []
+            [],
         );
     }
 
     toArray() {
         return Array.from({ length: this.height }, (_, y) =>
-            this.getRow(y + this.minY)
+            this.getRow(y + this.minY),
         );
     }
 
@@ -200,7 +200,7 @@ export class VirtualGrid<T> {
                     ? `${kleur.cyan(
                           (rowIndex + this.minY)
                               .toString()
-                              .padStart(padding, ' ')
+                              .padStart(padding, ' '),
                       )} `
                     : ''
             }${Array.from({ length: this.width }, (_, x) => {

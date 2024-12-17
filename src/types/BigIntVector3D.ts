@@ -36,7 +36,7 @@ export class BigIntVector3D {
         return new BigIntVector3D(
             this.x + other.x,
             this.y + other.y,
-            this.z + other.z
+            this.z + other.z,
         );
     }
 
@@ -44,7 +44,7 @@ export class BigIntVector3D {
         return new BigIntVector3D(
             this.x - other.x,
             this.y - other.y,
-            this.z - other.z
+            this.z - other.z,
         );
     }
 
@@ -52,7 +52,7 @@ export class BigIntVector3D {
         return new BigIntVector3D(
             this.x * BigInt(scalar),
             this.y * BigInt(scalar),
-            this.z * BigInt(scalar)
+            this.z * BigInt(scalar),
         );
     }
 
@@ -60,7 +60,7 @@ export class BigIntVector3D {
         return new BigIntVector3D(
             this.x / BigInt(scalar),
             this.y / BigInt(scalar),
-            this.z / BigInt(scalar)
+            this.z / BigInt(scalar),
         );
     }
 
@@ -72,7 +72,7 @@ export class BigIntVector3D {
         return new BigIntVector3D(
             this.y * other.z - this.z * other.y,
             this.z * other.x - this.x * other.z,
-            this.x * other.y - this.y * other.x
+            this.x * other.y - this.y * other.x,
         );
     }
 }

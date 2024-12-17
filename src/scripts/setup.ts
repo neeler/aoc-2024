@@ -14,7 +14,7 @@ async function setupRepo() {
             envFile,
             `AOC_SESSION_KEY=
 AOC_YEAR=${new Date().getFullYear()}
-`
+`,
         );
     }
 
@@ -30,28 +30,28 @@ AOC_YEAR=${new Date().getFullYear()}
     ) {
         const exampleFilePath = path.join(
             dataFolder,
-            `puzzle${puzzleNumber}-example.txt`
+            `puzzle${puzzleNumber}-example.txt`,
         );
         if (!existsSync(exampleFilePath)) {
             console.log(
                 kleur.cyan(
-                    `Generating blank example input file for puzzle ${puzzleNumber}.`
-                )
+                    `Generating blank example input file for puzzle ${puzzleNumber}.`,
+                ),
             );
             writeFileSync(exampleFilePath, '');
         }
 
         const inputFilePath = path.join(
             dataFolder,
-            `puzzle${puzzleNumber}-input.txt`
+            `puzzle${puzzleNumber}-input.txt`,
         );
         if (!existsSync(inputFilePath) || statSync(inputFilePath).size === 0) {
             await fetchPuzzleInput(puzzleNumber, {
                 onFailure: () => {
                     console.log(
                         kleur.cyan(
-                            `Generating blank input file for puzzle ${puzzleNumber}.`
-                        )
+                            `Generating blank input file for puzzle ${puzzleNumber}.`,
+                        ),
                     );
                     writeFileSync(inputFilePath, '');
                 },

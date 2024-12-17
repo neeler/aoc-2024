@@ -26,7 +26,7 @@ export class CycleAwareLooper {
              * Whether to log debug information.
              */
             debug?: boolean;
-        }
+        },
     ) {}
 
     /**
@@ -47,7 +47,7 @@ export class CycleAwareLooper {
                         console.log(
                             kleur.yellow(`Cycle detected at:\t${iCycle}
 Cycle length:\t\t${this.cycleLength}
-`)
+`),
                         );
                     }
 

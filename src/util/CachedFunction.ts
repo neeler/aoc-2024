@@ -4,7 +4,7 @@ export class CachedFunction<TParam, TReturn, TKey = TParam> {
         private readonly config: {
             func: (p: TParam) => TReturn;
             getKey: (p: TParam) => TKey;
-        }
+        },
     ) {}
 
     run(p: TParam): TReturn {

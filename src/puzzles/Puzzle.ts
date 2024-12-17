@@ -10,7 +10,7 @@ interface FileProcessorOptions {
 
 type FileProcessor<TData> = (
     fileData: string,
-    options: FileProcessorOptions
+    options: FileProcessorOptions,
 ) => TData;
 
 interface PuzzleConfig<TData> {
@@ -60,7 +60,7 @@ export class Puzzle<TData = string> {
         console.log(
             kleur.magenta(`
 AoC ${year} Day ${this.config.day}
-`)
+`),
         );
 
         if (!this.config.skipPart1) {
@@ -143,14 +143,14 @@ function printResult({
     indent?: string;
 }) {
     console.log(
-        kleur.bold().magenta(`${indent}Part ${part} `) + kleur.blue(label)
+        kleur.bold().magenta(`${indent}Part ${part} `) + kleur.blue(label),
     );
 
     if (result === undefined) {
         console.log(kleur.yellow(`${indent}Not solved yet.`));
     } else {
         console.log(
-            kleur.white(`${indent}Result `) + kleur.bold().green(result)
+            kleur.white(`${indent}Result `) + kleur.bold().green(result),
         );
         console.log(kleur.white(`${indent}Ran for ${timer.time}`));
     }

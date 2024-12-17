@@ -52,7 +52,7 @@ export class Point3D {
                         const newPoint = new Point3D(
                             this.x + dx,
                             this.y + dy,
-                            this.z + dz
+                            this.z + dz,
                         );
                         const isWithinBounds =
                             newPoint.x >= 0 &&
@@ -84,7 +84,7 @@ export class Point3D {
         return new Point3D(
             this.x + other.x,
             this.y + other.y,
-            this.z + other.z
+            this.z + other.z,
         );
     }
 
@@ -92,7 +92,7 @@ export class Point3D {
         return new Point3D(
             this.x - other.x,
             this.y - other.y,
-            this.z - other.z
+            this.z - other.z,
         );
     }
 
@@ -112,7 +112,7 @@ export class Point3D {
         return new Point3D(
             this.y * other.z - this.z * other.y,
             this.z * other.x - this.x * other.z,
-            this.x * other.y - this.y * other.x
+            this.x * other.y - this.y * other.x,
         );
     }
 }

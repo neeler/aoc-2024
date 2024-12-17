@@ -13,7 +13,7 @@ export function analyzePuzzleFiles() {
         .filter((fileName) => {
             const contents = readFileSync(
                 path.join(puzzleFolder, fileName),
-                'utf-8'
+                'utf-8',
             );
             const puzzleNumber = getPuzzleNumberFromFileName(fileName);
             return (
@@ -30,7 +30,7 @@ export function analyzePuzzleFiles() {
     console.log(
         kleur.cyan(`
 ${existingPuzzleNumbers.length} existing puzzle solution files found.
-`)
+`),
     );
 
     return {
