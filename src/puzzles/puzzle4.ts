@@ -4,12 +4,7 @@ import { Grid } from '~/types/Grid';
 export const puzzle4 = new Puzzle({
     day: 4,
     parseInput: (fileData) => {
-        return Grid.from2DStringArray(
-            fileData
-                .split('\n')
-                .filter((s) => s)
-                .map((s) => s.split('')),
-        );
+        return Grid.fromStringBlock(fileData);
     },
     part1: (grid) => {
         let count = 0;

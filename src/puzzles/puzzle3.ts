@@ -1,9 +1,10 @@
 import { Puzzle } from './Puzzle';
+import { splitFilter } from '~/util/parsing';
 
 export const puzzle3 = new Puzzle({
     day: 3,
     parseInput: (fileData) => {
-        return fileData.split('\n').filter((s) => s);
+        return splitFilter(fileData);
     },
     part1: (lines) => {
         const validCommandRegex = /mul\((\d{1,3}),(\d{1,3})\)/g;
@@ -11,8 +12,7 @@ export const puzzle3 = new Puzzle({
         lines.forEach((line) => {
             const matches = [...line.matchAll(validCommandRegex)];
             for (const [, first = '', second = ''] of matches) {
-                total +=
-                    Number.parseInt(first, 10) * Number.parseInt(second, 10);
+                total += Number(first) * Number(second);
             }
         });
         return total;
@@ -25,7 +25,6 @@ export const puzzle3 = new Puzzle({
             /(mul\((\d{1,3}),(\d{1,3})\))|(do\(\))|(don't\(\))/g;
 
         lines.forEach((line) => {
-            const matches = [...line.matchAll(commandRegex)];
             for (const [
                 ,
                 ,
@@ -33,15 +32,13 @@ export const puzzle3 = new Puzzle({
                 second = '',
                 doCommand,
                 dontCommand,
-            ] of matches) {
+            ] of line.matchAll(commandRegex)) {
                 if (doCommand) {
                     mulEnabled = true;
                 } else if (dontCommand) {
                     mulEnabled = false;
                 } else if (mulEnabled) {
-                    total +=
-                        Number.parseInt(first, 10) *
-                        Number.parseInt(second, 10);
+                    total += Number(first) * Number(second);
                 }
             }
         });
