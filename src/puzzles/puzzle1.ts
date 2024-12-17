@@ -24,10 +24,10 @@ export const puzzle1 = new Puzzle({
         };
     },
     part1: ({ leftList, rightList }) => {
-        const sortedLeft = leftList.toSorted((a, b) => a - b);
-        const sortedRight = rightList.toSorted((a, b) => a - b);
-        return sortedLeft.reduce((sum, left, i) => {
-            const right = sortedRight[i] ?? 0;
+        leftList.sort((a, b) => a - b);
+        rightList.sort((a, b) => a - b);
+        return leftList.reduce((sum, left, i) => {
+            const right = rightList[i] ?? 0;
             const distance = Math.abs(left - right);
             return sum + distance;
         }, 0);
