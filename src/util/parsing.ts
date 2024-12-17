@@ -6,7 +6,10 @@ import { FixedSizeArray } from '~/types/arrays';
  * @param str The string to split.
  * @param [delimiter='\n'] The delimiter to split the string on.
  */
-export function splitFilter(str: string, delimiter = '\n'): string[] {
+export function splitFilter(
+    str: string,
+    delimiter: string | RegExp = '\n',
+): string[] {
     return str.split(delimiter).filter((s) => s);
 }
 
@@ -17,7 +20,10 @@ export function splitFilter(str: string, delimiter = '\n'): string[] {
  * @param str The string to split.
  * @param [delimiter=',']  The delimiter to split the string on.
  */
-export function parseNumberList(str: string, delimiter = ','): number[] {
+export function parseNumberList(
+    str: string,
+    delimiter: string | RegExp = ',',
+): number[] {
     return splitFilter(str, delimiter).map(Number);
 }
 
@@ -26,6 +32,13 @@ export function parseNumberList(str: string, delimiter = ','): number[] {
  */
 export function getNumbers(str: string): number[] {
     return str.match(/-?\d+/g)?.map(Number) ?? [];
+}
+
+/**
+ * Get numbers from each line of a string, including negative numbers.
+ */
+export function getNumbersForEachLine(str: string): number[][] {
+    return splitFilter(str).map(getNumbers);
 }
 
 /**

@@ -1,17 +1,10 @@
 import { Puzzle } from './Puzzle';
+import { getNumbersForEachLine } from '~/util/parsing';
 
 export const puzzle2 = new Puzzle({
     day: 2,
     parseInput: (fileData) => {
-        return fileData
-            .split('\n')
-            .map((line) =>
-                line
-                    .split(/\s+/)
-                    .filter((n) => n)
-                    .map((n) => Number.parseInt(n, 10)),
-            )
-            .filter((s) => s);
+        return getNumbersForEachLine(fileData);
     },
     part1: (reports) => {
         return reports.reduce((nSafe, report) => {
