@@ -149,6 +149,8 @@ export class Grid<T> {
         [-1, 0],
     ];
 
+    static orthogonalDirections: Direction[] = ['up', 'down', 'left', 'right'];
+
     static allNeighbors: [number, number][] = [
         ...Grid.orthogonalNeighbors,
         [1, 1],

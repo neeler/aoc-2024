@@ -6,6 +6,7 @@ import { readDataFile } from '~/util/readDataFile';
 interface FileProcessorOptions {
     example?: boolean;
     puzzle?: boolean;
+    part: number;
 }
 
 type FileProcessor<TData> = (
@@ -32,20 +33,20 @@ export class Puzzle<TData = string> {
         return this.config.parseInput(fileData.trim(), options);
     }
 
-    getExampleData() {
+    getExampleData({ part }: { part: number }) {
         const data = readDataFile(`puzzle${this.config.day}-example.txt`);
         if (!data) {
             return undefined;
         }
-        return this.processFile(data, { example: true });
+        return this.processFile(data, { example: true, part });
     }
 
-    getPuzzleData() {
+    getPuzzleData({ part }: { part: number }) {
         const data = readDataFile(`puzzle${this.config.day}-input.txt`);
         if (!data) {
             return undefined;
         }
-        return this.processFile(data, { puzzle: true });
+        return this.processFile(data, { puzzle: true, part });
     }
 
     async run({
@@ -64,7 +65,9 @@ AoC ${year} Day ${this.config.day}
         );
 
         if (!this.config.skipPart1) {
-            const exampleData = example ? this.getExampleData() : undefined;
+            const exampleData = example
+                ? this.getExampleData({ part: 1 })
+                : undefined;
             if (exampleData) {
                 timer.reset();
 
@@ -80,7 +83,9 @@ AoC ${year} Day ${this.config.day}
                 });
             }
 
-            const puzzleData = mainProblem ? this.getPuzzleData() : undefined;
+            const puzzleData = mainProblem
+                ? this.getPuzzleData({ part: 1 })
+                : undefined;
             if (puzzleData) {
                 timer.reset();
 
@@ -96,7 +101,9 @@ AoC ${year} Day ${this.config.day}
         }
 
         if (!this.config.skipPart2) {
-            const exampleData = example ? this.getExampleData() : undefined;
+            const exampleData = example
+                ? this.getExampleData({ part: 2 })
+                : undefined;
             if (exampleData) {
                 timer.reset();
 
@@ -112,7 +119,9 @@ AoC ${year} Day ${this.config.day}
                 });
             }
 
-            const puzzleData = mainProblem ? this.getPuzzleData() : undefined;
+            const puzzleData = mainProblem
+                ? this.getPuzzleData({ part: 2 })
+                : undefined;
             if (puzzleData) {
                 timer.reset();
 
