@@ -1,6 +1,6 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
-import { Grid } from '~/types/Grid';
+import { getNumbers, splitFilter } from '~/util/parsing';
+import { Grid, GridNode } from '~/types/Grid';
 import { mod } from '~/util/arithmetic';
 
 class Robot {
@@ -25,17 +25,28 @@ class Robot {
         this.dx = dx;
         this.dy = dy;
     }
+
+    static fromString(str: string) {
+        const [x, y, dx, dy] = getNumbers(str);
+        if (
+            x === undefined ||
+            y === undefined ||
+            dx === undefined ||
+            dy === undefined
+        ) {
+            throw new Error('Invalid input');
+        }
+        return new Robot({
+            x,
+            y,
+            dx,
+            dy,
+        });
+    }
 }
 
-class Node {
+class Node extends GridNode {
     readonly robots = new Set<Robot>();
-    readonly row: number;
-    readonly col: number;
-
-    constructor({ row, col }: { row: number; col: number }) {
-        this.row = row;
-        this.col = col;
-    }
 
     toString() {
         return (this.robots.size || '.').toString();
@@ -74,20 +85,10 @@ export const puzzle14 = new Puzzle({
 });
 
 function parseInput(fileData: string) {
-    const robots = splitFilter(fileData).map((line) => {
-        const [pos = '', vel = ''] = line.split(' ');
-        const [x, y] = pos.slice(2).split(',').map(Number);
-        const [dx, dy] = vel.slice(2).split(',').map(Number);
-        return new Robot({
-            x: x!,
-            y: y!,
-            dx: dx!,
-            dy: dy!,
-        });
-    });
-    const grid = new Grid<Node>({
-        maxX: 101 - 1,
-        maxY: 103 - 1,
+    const robots = splitFilter(fileData).map((line) => Robot.fromString(line));
+    const grid = Grid.fromSize({
+        width: 101,
+        height: 103,
         defaultValue: (row, col) =>
             new Node({
                 row,
@@ -95,7 +96,7 @@ function parseInput(fileData: string) {
             }),
     });
     robots.forEach((robot) => {
-        grid.getAt(robot.y, robot.x)!.robots.add(robot);
+        grid.getAt(robot.y, robot.x)?.robots.add(robot);
     });
     return {
         grid,

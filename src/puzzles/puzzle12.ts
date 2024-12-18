@@ -1,13 +1,10 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
-import { Direction, Grid } from '~/types/Grid';
+import { DirectionKeys, Grid, GridCoordinate, GridNode } from '~/types/Grid';
 import { Stack } from '~/types/Stack';
 import { Point, PointSet } from '~/types/Point';
 
-class Node {
+class Node extends GridNode {
     readonly plant: string;
-    readonly row: number;
-    readonly col: number;
 
     constructor({
         plant,
@@ -15,12 +12,9 @@ class Node {
         col,
     }: {
         plant: string;
-        row: number;
-        col: number;
-    }) {
+    } & GridCoordinate) {
+        super({ row, col });
         this.plant = plant;
-        this.row = row;
-        this.col = col;
     }
 
     toString() {
@@ -29,31 +23,18 @@ class Node {
 }
 
 class Region extends Set<Node> {
-    private readonly plant: string;
     private readonly grid: Grid<Node>;
 
-    constructor({
-        grid,
-        nodes,
-        plant,
-    }: {
-        grid: Grid<Node>;
-        nodes?: Node[];
-        plant: string;
-    }) {
+    constructor({ grid, nodes }: { grid: Grid<Node>; nodes?: Node[] }) {
         super(nodes);
         this.grid = grid;
-        this.plant = plant;
     }
 
     /**
      * Paint fill approach to finding the region of nodes that are connected to the given node.
      */
     static fromNode(grid: Grid<Node>, node: Node) {
-        const region = new Region({
-            grid,
-            plant: node.plant,
-        });
+        const region = new Region({ grid });
         const stack = new Stack<Node>();
         stack.add(node);
         stack.process((node) => {
@@ -94,16 +75,18 @@ class Region extends Set<Node> {
         const pointNodeMap = new Map<Point, Set<Node>>();
         this.forEach((node) => {
             const points: Point[] = [new Point(node.col, node.row)];
-            Array<Direction>('down', 'right', 'downRight').forEach(
-                (direction) => {
-                    const coords = this.grid.getCoordsInDirection(
-                        node.row,
-                        node.col,
-                        direction,
-                    );
-                    points.push(new Point(coords.col, coords.row));
-                },
-            );
+            [
+                DirectionKeys.down,
+                DirectionKeys.right,
+                DirectionKeys.downRight,
+            ].forEach((direction) => {
+                const coords = this.grid.getCoordsInDirection(
+                    node.row,
+                    node.col,
+                    direction,
+                );
+                points.push(new Point(coords.col, coords.row));
+            });
             points.forEach((newPoint) => {
                 const point = pointSet.getLike(newPoint) ?? newPoint;
                 const nodesAtPoint = pointNodeMap.get(point) ?? new Set<Node>();
@@ -148,17 +131,15 @@ class Region extends Set<Node> {
 export const puzzle12 = new Puzzle({
     day: 12,
     parseInput: (fileData) => {
-        const data = splitFilter(fileData).map((line) => splitFilter(line, ''));
-        const grid = new Grid<Node>({
-            maxX: data[0]!.length - 1,
-            maxY: data.length - 1,
-            defaultValue: (row, col) =>
+        const grid = Grid.stringToNodeGrid(
+            fileData,
+            ({ input, row, col }) =>
                 new Node({
-                    plant: data[row]![col]!,
+                    plant: input,
                     row,
                     col,
                 }),
-        });
+        );
 
         const nodeRegionMap = new Map<Node, Region>();
         const regions = new Set<Region>();

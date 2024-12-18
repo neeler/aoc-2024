@@ -1,10 +1,11 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
+import { parseStringBlock } from '~/util/parsing';
 import {
     CharDirectionMap,
     Direction,
     Grid,
     GridCoordinate,
+    GridNode,
 } from '~/types/Grid';
 
 class Box {
@@ -25,9 +26,7 @@ class Box {
     }
 }
 
-class Node {
-    readonly row: number;
-    readonly col: number;
+class Node extends GridNode {
     isWall: boolean;
     box?: Box;
     hasRobot: boolean;
@@ -39,14 +38,11 @@ class Node {
         box,
         hasRobot,
     }: {
-        row: number;
-        col: number;
         isWall: boolean;
         box?: Box;
         hasRobot: boolean;
-    }) {
-        this.row = row;
-        this.col = col;
+    } & GridCoordinate) {
+        super({ row, col });
         this.isWall = isWall;
         this.box = box;
         this.hasRobot = hasRobot;
@@ -103,7 +99,7 @@ export const puzzle15 = new Puzzle({
 });
 
 function parseInput(fileData: string, widthMultiplier = 1) {
-    const data = splitFilter(fileData).map((line) => splitFilter(line, ''));
+    const data = parseStringBlock(fileData);
     const warehouseData: string[][] = [];
     let edgesSeen = 0;
     for (let i = 0; i < data.length; i++) {
@@ -116,9 +112,9 @@ function parseInput(fileData: string, widthMultiplier = 1) {
             break;
         }
     }
-    const grid = new Grid<Node>({
-        maxX: warehouseData[0]!.length * widthMultiplier - 1,
-        maxY: warehouseData.length - 1,
+    const grid = Grid.fromSize({
+        width: warehouseData[0]!.length * widthMultiplier,
+        height: warehouseData.length,
         defaultValue: (row, col) =>
             new Node({
                 row,

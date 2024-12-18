@@ -1,11 +1,8 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
-import { Direction, Grid } from '~/types/Grid';
+import { Direction, Grid, GridCoordinate, GridNode } from '~/types/Grid';
 import { Queue } from '~/types/Queue';
 
-class Node {
-    readonly row: number;
-    readonly col: number;
+class Node extends GridNode {
     readonly isWall: boolean;
     readonly isStart: boolean;
     readonly isEnd: boolean;
@@ -17,14 +14,11 @@ class Node {
         isStart,
         isEnd,
     }: {
-        row: number;
-        col: number;
         isWall: boolean;
         isStart: boolean;
         isEnd: boolean;
-    }) {
-        this.row = row;
-        this.col = col;
+    } & GridCoordinate) {
+        super({ row, col });
         this.isWall = isWall;
         this.isStart = isStart;
         this.isEnd = isEnd;
@@ -52,20 +46,17 @@ const turnMaps: Record<string, Direction[]> = {
 export const puzzle16 = new Puzzle({
     day: 16,
     parseInput: (fileData) => {
-        const data = splitFilter(fileData).map((line) => splitFilter(line, ''));
-        const grid = new Grid<Node>({
-            maxX: data[0]!.length - 1,
-            maxY: data.length - 1,
-            defaultValue: (row, col) => {
-                return new Node({
+        const grid = Grid.stringToNodeGrid(
+            fileData,
+            ({ input, row, col }) =>
+                new Node({
                     row,
                     col,
-                    isWall: data[row]![col] === '#',
-                    isStart: data[row]![col] === 'S',
-                    isEnd: data[row]![col] === 'E',
-                });
-            },
-        });
+                    isWall: input === '#',
+                    isStart: input === 'S',
+                    isEnd: input === 'E',
+                }),
+        );
         return analyzeBestPaths(grid);
     },
     part1: ({ bestScore }) => {

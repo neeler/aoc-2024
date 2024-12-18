@@ -1,5 +1,5 @@
 import { Puzzle } from './Puzzle';
-import { parseNumberList, splitFilter } from '~/util/parsing';
+import { getMultilineNumbers } from '~/util/parsing';
 import { mod } from '~/util/arithmetic';
 import { range } from '~/util/range';
 
@@ -111,13 +111,21 @@ class Computer {
 export const puzzle17 = new Puzzle({
     day: 17,
     parseInput: (fileData) => {
-        const [regA = '', regB = '', regC = '', program = ''] =
-            splitFilter(fileData);
+        const [regA, regB, regC, ...instructions] =
+            getMultilineNumbers(fileData);
+        if (
+            regA === undefined ||
+            regB === undefined ||
+            regC === undefined ||
+            instructions.length === 0
+        ) {
+            throw new Error('Invalid input');
+        }
         return {
-            regA: Number(regA.slice(12)),
-            regB: Number(regB.slice(12)),
-            regC: Number(regC.slice(12)),
-            instructions: parseNumberList(program.slice(9)),
+            regA,
+            regB,
+            regC,
+            instructions,
         };
     },
     part1: (data) => {
@@ -128,7 +136,7 @@ export const puzzle17 = new Puzzle({
         return computer.output();
     },
     part2: ({ instructions }) => {
-        let answers: number[] = [0];
+        let answers = [0];
 
         for (const target of instructions.toReversed().map(Number)) {
             const nextAnswers: number[] = [];

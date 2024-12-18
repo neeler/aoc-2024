@@ -1,6 +1,6 @@
 import kleur from 'kleur';
 import { CustomSet } from '~/types/CustomSet';
-import { parseStringBlock, splitFilter } from '~/util/parsing';
+import { parseStringBlock } from '~/util/parsing';
 
 export const Directions = {
     up: [-1, 0],
@@ -122,6 +122,24 @@ export class Grid<T> {
         toNode: (data: { input: string; row: number; col: number }) => T,
     ): Grid<T> {
         return Grid.from2DArray(parseStringBlock(data), toNode);
+    }
+
+    static fromSize<T>({
+        width,
+        height,
+        defaultValue,
+    }: {
+        width: number;
+        height: number;
+        defaultValue?: (row: number, col: number) => T;
+    }) {
+        return new Grid<T>({
+            minX: 0,
+            minY: 0,
+            maxX: width - 1,
+            maxY: height - 1,
+            defaultValue,
+        });
     }
 
     static orthogonalNeighbors: [number, number][] = [

@@ -1,13 +1,13 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
+import { getNumbersForEachLine, splitFilter } from '~/util/parsing';
 
 class Machine {
     readonly ax: number;
     readonly ay: number;
     readonly bx: number;
     readonly by: number;
-    readonly prizeX: number;
-    readonly prizeY: number;
+    prizeX: number;
+    prizeY: number;
 
     constructor({
         ax,
@@ -30,6 +30,29 @@ class Machine {
         this.by = by;
         this.prizeX = prizeX;
         this.prizeY = prizeY;
+    }
+
+    static fromString(str: string) {
+        const [[ax, ay] = [], [bx, by] = [], [prizeX, prizeY] = []] =
+            getNumbersForEachLine(str);
+        if (
+            ax === undefined ||
+            ay === undefined ||
+            bx === undefined ||
+            by === undefined ||
+            prizeX === undefined ||
+            prizeY === undefined
+        ) {
+            throw new Error('Invalid input');
+        }
+        return new Machine({
+            ax,
+            ay,
+            bx,
+            by,
+            prizeX,
+            prizeY,
+        });
     }
 
     get winCost() {
@@ -67,28 +90,7 @@ class Machine {
 export const puzzle13 = new Puzzle({
     day: 13,
     parseInput: (fileData) => {
-        return splitFilter(fileData, '\n\n').map((machine) => {
-            const [
-                ,
-                ax = '',
-                ay = '',
-                bx = '',
-                by = '',
-                prizeX = '',
-                prizeY = '',
-            ] =
-                machine.match(
-                    /Button A: X\+(\d+), Y\+(\d+)\s+Button B: X\+(\d+), Y\+(\d+)\s+Prize: X=(\d+), Y=(\d+)/,
-                ) ?? [];
-            return new Machine({
-                ax: parseInt(ax, 10),
-                ay: parseInt(ay, 10),
-                bx: parseInt(bx, 10),
-                by: parseInt(by, 10),
-                prizeX: parseInt(prizeX, 10),
-                prizeY: parseInt(prizeY, 10),
-            });
-        });
+        return splitFilter(fileData, '\n\n').map((s) => Machine.fromString(s));
     },
     part1: (machines) => {
         return machines.reduce(
@@ -97,18 +99,10 @@ export const puzzle13 = new Puzzle({
         );
     },
     part2: (machines) => {
-        return machines.reduce(
-            (acc, inputMachine) =>
-                acc +
-                (new Machine({
-                    ax: inputMachine.ax,
-                    ay: inputMachine.ay,
-                    bx: inputMachine.bx,
-                    by: inputMachine.by,
-                    prizeX: inputMachine.prizeX + 10000000000000,
-                    prizeY: inputMachine.prizeY + 10000000000000,
-                }).winCost ?? 0),
-            0,
-        );
+        return machines.reduce((acc, machine) => {
+            machine.prizeX += 10000000000000;
+            machine.prizeY += 10000000000000;
+            return acc + (machine.winCost ?? 0);
+        }, 0);
     },
 });

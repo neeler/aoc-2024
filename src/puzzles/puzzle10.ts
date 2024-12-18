@@ -1,12 +1,9 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
-import { Grid } from '~/types/Grid';
+import { Grid, GridCoordinate, GridNode } from '~/types/Grid';
 import { Queue } from '~/types/Queue';
 
-class Node {
+class Node extends GridNode {
     readonly height: number;
-    readonly row: number;
-    readonly col: number;
 
     constructor({
         height,
@@ -14,12 +11,9 @@ class Node {
         col,
     }: {
         height: number;
-        row: number;
-        col: number;
-    }) {
+    } & GridCoordinate) {
+        super({ row, col });
         this.height = height;
-        this.row = row;
-        this.col = col;
     }
 
     toString() {
@@ -30,17 +24,11 @@ class Node {
 export const puzzle10 = new Puzzle({
     day: 10,
     parseInput: (fileData) => {
-        const data = splitFilter(fileData).map((line) => splitFilter(line, ''));
-        const grid = new Grid<Node>({
-            maxX: data[0]!.length - 1,
-            maxY: data.length - 1,
-            defaultValue: (row, col) =>
-                new Node({
-                    height: Number(data[row]![col]!),
-                    row,
-                    col,
-                }),
-        });
+        const grid = Grid.stringToNodeGrid<Node>(
+            fileData,
+            ({ input, row, col }) =>
+                new Node({ height: Number(input), row, col }),
+        );
         const trailHeads = grid.reduce<
             {
                 node: Node;

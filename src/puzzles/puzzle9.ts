@@ -1,5 +1,5 @@
 import { Puzzle } from './Puzzle';
-import { parseNumberList, splitFilter } from '~/util/parsing';
+import { parseNumberList } from '~/util/parsing';
 import { sum } from '~/util/arithmetic';
 
 interface DiskChunk {
@@ -10,9 +10,7 @@ interface DiskChunk {
 export const puzzle9 = new Puzzle({
     day: 9,
     parseInput: (fileData) => {
-        const input = splitFilter(fileData).map((s) =>
-            parseNumberList(s, ''),
-        )[0]!;
+        const input = parseNumberList(fileData, '');
         const diskData: string[] = [];
         const diskChunks: DiskChunk[] = [];
         let id = 0;
