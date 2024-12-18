@@ -1,6 +1,6 @@
 import { Puzzle } from './Puzzle';
 import { sum } from '~/util/arithmetic';
-import { splitFilter, parseNumberList } from '~/util/parsing';
+import { splitFilter, getNumbersForEachLine } from '~/util/parsing';
 import { itemToIndexMap, middleItem } from '~/util/collections';
 import { CustomSet } from '~/types/CustomSet';
 import { isUndefined } from '~/util/nullish';
@@ -11,18 +11,14 @@ type Update = number[];
 export const puzzle5 = new Puzzle({
     day: 5,
     parseInput: (fileData) => {
-        const [ruleSection = '', updateSection = ''] = splitFilter(
-            fileData,
-            '\n\n',
-        );
+        const [ruleSection, updateSection] = splitFilter(fileData, '\n\n');
 
-        const rules = splitFilter(ruleSection).map(
-            (s) => parseNumberList(s, '|') as Rule,
-        );
+        if (!ruleSection || !updateSection) {
+            throw new Error('Invalid input');
+        }
 
-        const allUpdates = splitFilter(updateSection).map(
-            (s): Update => parseNumberList(s),
-        );
+        const rules = getNumbersForEachLine(ruleSection) as Rule[];
+        const allUpdates = getNumbersForEachLine(updateSection) as Update[];
 
         const validUpdates: Update[] = [];
         const invalidUpdates: Update[] = [];

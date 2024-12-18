@@ -22,6 +22,9 @@ export const CharDirectionMap: Record<string, Direction> = {
     '<': 'left',
     '>': 'right',
 };
+export const DirectionsToChars = Object.fromEntries(
+    Object.entries(CharDirectionMap).map(([key, value]) => [value, key]),
+) as Record<Direction, string>;
 
 export class Grid<T> {
     private readonly grid: (T | undefined)[][] = [];

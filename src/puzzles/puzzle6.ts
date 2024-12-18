@@ -1,6 +1,11 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
-import { Direction, DirectionKeys, Grid, GridPosSet } from '~/types/Grid';
+import {
+    Direction,
+    DirectionKeys,
+    DirectionsToChars,
+    Grid,
+    GridPosSet,
+} from '~/types/Grid';
 import { CustomSet } from '~/types/CustomSet';
 
 const rightTurnMap = {
@@ -13,12 +18,7 @@ const rightTurnMap = {
 export const puzzle6 = new Puzzle({
     day: 6,
     parseInput: (fileData) => {
-        const data = splitFilter(fileData).map((line) => splitFilter(line, ''));
-        return new Grid({
-            maxX: data[0]!.length - 1,
-            maxY: data.length - 1,
-            defaultValue: (row, col) => data[row]![col]!,
-        });
+        return Grid.fromStringBlock(fileData);
     },
     part1: (grid) => {
         const guardPath = walkGrid(grid);
@@ -138,12 +138,5 @@ function walkGrid(
 }
 
 function drawDirection(direction: Direction) {
-    return (
-        {
-            [DirectionKeys.up]: '^',
-            [DirectionKeys.down]: 'v',
-            [DirectionKeys.left]: '<',
-            [DirectionKeys.right]: '>',
-        }[direction] ?? 'X'
-    );
+    return DirectionsToChars[direction] ?? 'X';
 }

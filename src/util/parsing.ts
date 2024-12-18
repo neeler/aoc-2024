@@ -1,5 +1,3 @@
-import { FixedSizeArray } from '~/types/arrays';
-
 /**
  * Splits a string into an array of strings, filtering out empty strings.
  *
@@ -39,19 +37,4 @@ export function getNumbers(str: string): number[] {
  */
 export function getNumbersForEachLine(str: string): number[][] {
     return splitFilter(str).map(getNumbers);
-}
-
-/**
- * Get numbers from a string, including negative numbers.
- * Throw an error if the number of numbers found does not match the expected count.
- */
-export function getNumbersAssert<L extends number>(
-    str: string,
-    count: number,
-): FixedSizeArray<number, L> {
-    const numbers = getNumbers(str);
-    if (numbers.length !== count) {
-        throw new Error(`Expected ${count} numbers, found ${numbers.length}`);
-    }
-    return numbers as FixedSizeArray<number, L>;
 }

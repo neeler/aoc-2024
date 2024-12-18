@@ -1,8 +1,7 @@
 import { Point3D } from '~/types/Point3D';
-import { FixedSizeArray } from '~/types/arrays';
 
 export class BigIntVector3D {
-    private readonly data: FixedSizeArray<bigint, 3>;
+    private readonly data: [bigint, bigint, bigint];
 
     constructor(x: number | bigint, y: number | bigint, z: number | bigint) {
         this.data = [BigInt(x), BigInt(y), BigInt(z)];
