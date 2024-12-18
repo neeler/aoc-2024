@@ -11,6 +11,10 @@ export function splitFilter(
     return str.split(delimiter).filter((s) => s);
 }
 
+export function parseStringBlock(str: string): string[][] {
+    return splitFilter(str).map((s) => splitFilter(s, ''));
+}
+
 /**
  * Splits a string into an array of strings, filtering out empty strings,
  * then parses each string into a number.

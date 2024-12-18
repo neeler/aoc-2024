@@ -1,11 +1,9 @@
 import { Puzzle } from './Puzzle';
-import { splitFilter } from '~/util/parsing';
-import { Grid } from '~/types/Grid';
+import { Grid, GridCoordinate, GridNode } from '~/types/Grid';
+import { MapOfArrays } from '~/util/collections';
 
-class Node {
+class Node extends GridNode {
     readonly char: string;
-    readonly row: number;
-    readonly col: number;
     readonly antenna?: string;
     antinode = false;
 
@@ -15,12 +13,9 @@ class Node {
         col,
     }: {
         char: string;
-        row: number;
-        col: number;
-    }) {
+    } & GridCoordinate) {
+        super({ row, col });
         this.char = char;
-        this.row = row;
-        this.col = col;
         this.antenna = this.char !== '.' ? this.char : undefined;
     }
 
@@ -34,24 +29,14 @@ class Node {
 export const puzzle8 = new Puzzle({
     day: 8,
     parseInput: (fileData) => {
-        const data = splitFilter(fileData).map((s) => splitFilter(s, ''));
-        const grid = new Grid<Node>({
-            maxX: data[0]!.length - 1,
-            maxY: data.length - 1,
-            defaultValue: (row, col) =>
-                new Node({
-                    char: data[row]![col]!,
-                    row,
-                    col,
-                }),
-        });
-        const antennasByType = new Map<string, Node[]>();
+        const grid = Grid.stringToNodeGrid(
+            fileData,
+            ({ input, row, col }) => new Node({ char: input, row, col }),
+        );
+        const antennasByType = new MapOfArrays<string, Node>();
         grid.forEach((node) => {
             if (node?.antenna) {
-                antennasByType.set(node.antenna, [
-                    ...(antennasByType.get(node.antenna) ?? []),
-                    node,
-                ]);
+                antennasByType.addToKey(node.antenna, node);
             }
         });
         const distinctAntennaPairsByType = new Map<

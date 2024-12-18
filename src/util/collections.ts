@@ -18,3 +18,12 @@ export function middleItem<T>(array: T[]): T {
     }
     return array[Math.floor(array.length / 2)]!;
 }
+
+export class MapOfArrays<K, D> extends Map<K, D[]> {
+    addToKey(key: K, data: D) {
+        if (!this.has(key)) {
+            this.set(key, []);
+        }
+        this.get(key)!.push(data);
+    }
+}

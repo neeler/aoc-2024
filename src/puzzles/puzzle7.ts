@@ -1,5 +1,5 @@
 import { Puzzle } from './Puzzle';
-import { parseNumberList } from '~/util/parsing';
+import { getNumbers, splitFilter } from '~/util/parsing';
 import { sum } from '~/util/arithmetic';
 
 type Operator = '+' | '*' | '||';
@@ -11,16 +11,16 @@ interface Equation {
 export const puzzle7 = new Puzzle({
     day: 7,
     parseInput: (fileData) => {
-        return fileData
-            .split('\n')
-            .filter((s) => s)
-            .map((s): Equation => {
-                const [testValue = '', numbers = ''] = s.split(':');
-                return {
-                    testValue: Number(testValue),
-                    numbers: parseNumberList(numbers.trim(), ' '),
-                };
-            });
+        return splitFilter(fileData).map((s): Equation => {
+            const [testValue, ...numbers] = getNumbers(s) as [
+                number,
+                ...number[],
+            ];
+            return {
+                testValue,
+                numbers,
+            };
+        });
     },
     part1: (equations) => {
         return sumValidEquations(equations, ['+', '*']);
