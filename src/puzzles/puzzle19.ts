@@ -1,6 +1,5 @@
 import { Puzzle } from './Puzzle';
 import { splitFilter } from '~/util/parsing';
-import { Stack } from '~/types/Stack';
 import { memoize } from '~/util/memoize';
 
 export const puzzle19 = new Puzzle({
@@ -15,33 +14,27 @@ export const puzzle19 = new Puzzle({
         };
     },
     part1: ({ towels, designs }) => {
-        const possibleDesigns: string[] = [];
-
-        for (const design of designs) {
-            const queue = new Stack<string>();
-            const designsSeen = new Set<string>();
-            queue.add(design);
-            queue.process((designSoFar) => {
-                for (const towel of towels) {
-                    if (designSoFar === towel) {
-                        possibleDesigns.push(design);
-                        queue.reset();
-                        return;
+        const isPossible = memoize<string, boolean>({
+            key: (design) => design,
+            fn: (design): boolean =>
+                towels.some((towel) => {
+                    if (!design.startsWith(towel)) {
+                        return false;
                     }
 
-                    if (designSoFar.startsWith(towel)) {
-                        const nextDesign = designSoFar.slice(towel.length);
-                        if (designsSeen.has(nextDesign)) {
-                            continue;
-                        }
-                        designsSeen.add(nextDesign);
-                        queue.add(nextDesign);
+                    const remainingDesign = design.slice(towel.length);
+                    if (!remainingDesign) {
+                        return true;
                     }
-                }
-            });
-        }
 
-        return possibleDesigns.length;
+                    return isPossible(remainingDesign);
+                }),
+        });
+
+        return designs.reduce(
+            (sum, design) => sum + (isPossible(design) ? 1 : 0),
+            0,
+        );
     },
     part2: ({ towels, designs }) => {
         const getNumCombos = memoize<string, number>({
