@@ -43,7 +43,6 @@ export const puzzle18 = new Puzzle({
             ) {
                 return [byte.col, byte.row].join(',');
             }
-            maze.resetScores();
         }
         throw new Error('No blocking byte found');
     },

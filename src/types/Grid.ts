@@ -252,7 +252,7 @@ export class Grid<T> {
     }
 
     find(
-        fn: (data: T | undefined, row: number, col: number) => boolean,
+        fn: (data: T | undefined, row: number, col: number) => any,
     ): T | undefined {
         for (const [iRow, row] of this.grid.entries()) {
             for (const [iCol, node] of row.entries()) {
@@ -265,7 +265,7 @@ export class Grid<T> {
     }
 
     findCoords(
-        fn: (data: T | undefined, row: number, col: number) => boolean,
+        fn: (data: T | undefined, row: number, col: number) => any,
     ): GridCoordinate | undefined {
         for (const [iRow, row] of this.grid.entries()) {
             for (const [iCol, node] of row.entries()) {
@@ -322,6 +322,28 @@ export class Grid<T> {
                 return neighbors;
             },
             [],
+        );
+    }
+
+    static manhattanDistance(p1: GridCoordinate, p2: GridCoordinate) {
+        return Math.abs(p1.row - p2.row) + Math.abs(p1.col - p2.col);
+    }
+
+    getNAway(
+        pos: GridCoordinate,
+        distance: number,
+        condition?: (n: T) => any,
+    ): T[] {
+        return this.filter(
+            (_, row, col) =>
+                Grid.manhattanDistance(
+                    {
+                        row,
+                        col,
+                    },
+                    pos,
+                ) === distance &&
+                (!condition || condition(this.getAt(row, col)!)),
         );
     }
 

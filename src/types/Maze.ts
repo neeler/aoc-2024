@@ -1,7 +1,9 @@
 import { Grid, GridCoordinate, GridNode } from '~/types/Grid';
 import { Queue } from '~/types/Queue';
+import { parseStringBlock } from '~/util/parsing';
 
-class MazeNode extends GridNode {
+export class MazeNode extends GridNode {
+    char?: string;
     obstacle: boolean;
     bestScore = Infinity;
 
@@ -25,6 +27,10 @@ class MazeNode extends GridNode {
             return this.bestScore.toString().slice(-1);
         }
 
+        if (this.char) {
+            return this.char;
+        }
+
         return '.';
     }
 }
@@ -38,7 +44,43 @@ export class Maze extends Grid<MazeNode> {
         });
     }
 
-    score({ start, end }: { start: MazeNode; end: MazeNode }) {
+    static fromMazeString(
+        block: string,
+        {
+            obstacleChar = '#',
+        }: {
+            obstacleChar?: string;
+        } = {},
+    ) {
+        const data = parseStringBlock(block);
+        const width = Math.max(...data.map((row) => row.length));
+        const height = data.length;
+        const maze = new Maze({
+            width,
+            height,
+        });
+
+        if (obstacleChar) {
+            maze.forEach((node, row, col) => {
+                if (node) {
+                    node.char = data[row]?.[col];
+                    node.obstacle = node.char === obstacleChar;
+                }
+            });
+        }
+
+        return maze;
+    }
+
+    score({
+        start,
+        end,
+        resetAfter = true,
+    }: {
+        start: MazeNode;
+        end: MazeNode;
+        resetAfter?: boolean;
+    }) {
         const queue = new Queue<MazeNode>();
         start.bestScore = 0;
         queue.add(start);
@@ -61,7 +103,13 @@ export class Maze extends Grid<MazeNode> {
             });
         });
 
-        return end.bestScore;
+        const score = end.bestScore;
+
+        if (resetAfter) {
+            this.resetScores();
+        }
+
+        return score;
     }
 
     resetScores() {
