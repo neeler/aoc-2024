@@ -97,27 +97,27 @@ function calculateComplexityChain({
         >({
             fn: ({ combo, iRobot: currentRobot }) => {
                 if (currentRobot === 0) {
-                    // Human key presses
-                    return shortestPossibleCombos({
+                    return humanComplexity({
                         keypad: directionalKeypad,
                         targetOutput: combo,
                     });
                 }
-                const matches = combo.matchAll(/[^A]*A/g);
                 let sum = 0;
-                for (const [match] of matches) {
+                for (const [match] of combo.matchAll(/[^A]*A/g)) {
                     const nextCombos = generateKeyCombo({
                         keypad: directionalKeypad,
                         targetOutput: match,
                         moveSequences: dkMoveSequences,
                     });
-                    const complexities = nextCombos.map((nextCombo) =>
-                        calculateComplexity({
+                    let minComplexity = Infinity;
+                    for (const nextCombo of nextCombos) {
+                        const complexity = calculateComplexity({
                             combo: nextCombo,
                             iRobot: currentRobot - 1,
-                        }),
-                    );
-                    sum += Math.min(...complexities);
+                        });
+                        minComplexity = Math.min(minComplexity, complexity);
+                    }
+                    sum += minComplexity;
                 }
                 return sum;
             },
@@ -134,7 +134,7 @@ function calculateComplexityChain({
     }, 0);
 }
 
-function shortestPossibleCombos({
+function humanComplexity({
     keypad,
     targetOutput,
 }: {
