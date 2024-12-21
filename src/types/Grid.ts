@@ -325,6 +325,24 @@ export class Grid<T> {
         );
     }
 
+    getOrthogonalNeighborsWithDirections({ row, col }: GridCoordinate) {
+        return Grid.orthogonalDirections.reduce<
+            {
+                node: T;
+                direction: Direction;
+            }[]
+        >((neighbors, direction) => {
+            const node = this.getNeighborInDirection(row, col, direction);
+            if (node) {
+                neighbors.push({
+                    node,
+                    direction,
+                });
+            }
+            return neighbors;
+        }, []);
+    }
+
     static manhattanDistance(p1: GridCoordinate, p2: GridCoordinate) {
         return Math.abs(p1.row - p2.row) + Math.abs(p1.col - p2.col);
     }
