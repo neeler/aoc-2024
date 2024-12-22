@@ -1,8 +1,7 @@
 import { Puzzle } from './Puzzle';
 import { getMultilineNumbers } from '~/util/parsing';
 import { mod } from '~/util/arithmetic';
-
-type Sequence = [number, number, number, number];
+import { SlidingWindow } from '~/types/SlidingWindow';
 
 export const puzzle22 = new Puzzle({
     day: 22,
@@ -20,21 +19,20 @@ export const puzzle22 = new Puzzle({
         secrets.forEach((initialSecret) => {
             let secret = initialSecret;
             let lastPrice = getPrice(secret);
-            const changes: number[] = [];
+
+            const changes = new SlidingWindow<number>({ windowSize: 4 });
             const sequencesSeen = new Set<string>();
+
             for (let i = 0; i < 2000; i++) {
                 secret = nextSecret(secret);
 
                 const price = getPrice(secret);
                 changes.push(price - lastPrice);
 
-                if (i >= 3) {
-                    const key = sequenceKey([
-                        changes[i - 3]!,
-                        changes[i - 2]!,
-                        changes[i - 1]!,
-                        changes[i]!,
-                    ]);
+                const sequence = changes.getFullWindow();
+
+                if (sequence) {
+                    const key = sequence.join(',');
                     if (!sequencesSeen.has(key)) {
                         sequencesSeen.add(key);
                         totalSequencePrices.set(
@@ -52,12 +50,13 @@ export const puzzle22 = new Puzzle({
     },
 });
 
-function sequenceKey(sequence: Sequence) {
-    return sequence.join(',');
-}
-
 function nextSecret(input: number, iterations = 1) {
-    if (iterations === 0) return input;
+    if (iterations < 0) {
+        throw new Error('iterations must be >= 0');
+    }
+    if (iterations === 0) {
+        return input;
+    }
 
     let secret = input;
 
