@@ -2,9 +2,9 @@ import { Puzzle } from './Puzzle';
 import {
     Direction,
     DirectionKeys,
-    DirectionsToChars,
     Grid,
-    GridPosSet,
+    GridCoordinate,
+    GridNode,
 } from '~/types/Grid';
 import { CustomSet } from '~/types/CustomSet';
 
@@ -15,16 +15,39 @@ const rightTurnMap = {
     [DirectionKeys.left]: DirectionKeys.up,
 };
 
+class Node extends GridNode {
+    char: string;
+    obstacle: boolean;
+    isStart: boolean;
+
+    constructor({ row, col, input }: GridCoordinate & { input: string }) {
+        super({ row, col });
+        this.char = input;
+        this.obstacle = input === '#';
+        this.isStart = input === '^';
+    }
+
+    toString() {
+        return this.char;
+    }
+}
+
+type NodeSet = CustomSet<Node>;
+
 export const puzzle6 = new Puzzle({
     day: 6,
     parseInput: (fileData) => {
-        return Grid.fromStringBlock(fileData);
+        const grid = Grid.stringToNodeGrid(fileData, (data) => new Node(data));
+        return {
+            grid,
+            start: grid.find((node) => node?.isStart)!,
+        };
     },
-    part1: (grid) => {
-        const guardPath = walkGrid(grid);
+    part1: ({ grid, start }) => {
+        const guardPath = walkGrid({ grid, start });
         return guardPath.size;
     },
-    part2: (grid) => {
+    part2: ({ grid, start }) => {
         let obstaclePositions = 0;
 
         const obstacles = findObstacles(grid);
@@ -32,111 +55,92 @@ export const puzzle6 = new Puzzle({
         /**
          * Try placing an obstacle at each node along the guard's path
          */
-        walkGrid(grid, { obstacles })
+        walkGrid({ grid, start, obstacles })
             .values()
             .slice(1) // Skip the starting position, can't put an obstacle there
-            .forEach(({ row: obstRow, col: obstCol }) => {
-                grid.setAt(obstRow, obstCol, '#');
-                obstacles.add({ row: obstRow, col: obstCol });
+            .forEach((node) => {
+                obstacles.add(node);
 
                 try {
-                    walkGrid(grid, { obstacles });
+                    walkGrid({ grid, start, obstacles });
                 } catch {
                     // Loop detected
                     obstaclePositions++;
                 }
 
-                grid.setAt(obstRow, obstCol, '.');
-                obstacles.delete({ row: obstRow, col: obstCol });
+                obstacles.delete(node);
             });
 
         return obstaclePositions;
     },
 });
 
-function findGuard(grid: Grid<string>) {
-    return grid.findCoords((char) => char === drawDirection(DirectionKeys.up))!;
+function newNodeSet(): NodeSet {
+    return new CustomSet<Node>({
+        getKey: (node) => `${node.row},${node.col}`,
+    });
 }
 
-function findObstacles(grid: Grid<string>) {
-    const obstacles = new GridPosSet();
-    grid.forEach((char, row, col) => {
-        if (char === '#') {
-            obstacles.add({ row, col });
+function findObstacles(grid: Grid<Node>) {
+    const obstacles = newNodeSet();
+    grid.forEach((node) => {
+        if (node?.obstacle) {
+            obstacles.add(node);
         }
     });
     return obstacles;
 }
 
-function walkGrid(
-    grid: Grid<string>,
-    {
-        obstacles: inputObstacles,
-    }: {
-        obstacles?: CustomSet<{ row: number; col: number }>;
-    } = {},
-) {
-    const { row: startingRow, col: startingCol } = findGuard(grid);
-    let row = startingRow;
-    let col = startingCol;
+function walkGrid({
+    grid,
+    start,
+    obstacles: inputObstacles,
+}: {
+    grid: Grid<Node>;
+    start: Node;
+    obstacles?: CustomSet<Node>;
+}) {
+    let row = start.row;
+    let col = start.col;
     let direction = DirectionKeys.up;
-
-    const resetGrid = () => {
-        grid.setAt(row, col, '.');
-        grid.setAt(startingRow, startingCol, drawDirection(DirectionKeys.up));
-    };
 
     const obstacles = inputObstacles ?? findObstacles(grid);
 
-    const positions = new GridPosSet();
+    const positions = newNodeSet();
     const directionalPositions = new CustomSet<{
-        row: number;
-        col: number;
+        node: Node;
         direction: Direction;
     }>({
-        getKey: ({ row, col, direction }) => `${row},${col},${direction}`,
+        getKey: ({ node, direction }) => `${node.row},${node.col},${direction}`,
     });
-    positions.add({ row, col });
-    directionalPositions.add({ row, col, direction });
+    positions.add(start);
+    directionalPositions.add({ node: start, direction });
 
     while (true) {
-        const nextNode = grid.getCoordsInDirection(row, col, direction);
+        const node = grid.getNeighborInDirection(row, col, direction);
 
-        if (!grid.get(nextNode)) {
+        if (!node) {
             // Reached the end of the grid
             break;
         }
 
-        if (obstacles.has(nextNode)) {
+        if (obstacles.has(node)) {
             // Turn right
             direction = rightTurnMap[direction]!;
-            grid.setAt(row, col, drawDirection(direction));
         } else {
             // Move forward
-            grid.setAt(nextNode.row, nextNode.col, drawDirection(direction));
-            grid.setAt(row, col, '.');
-
-            row = nextNode.row;
-            col = nextNode.col;
-
-            positions.add(nextNode);
+            row = node.row;
+            col = node.col;
+            positions.add(node);
         }
 
-        if (directionalPositions.has({ row, col, direction })) {
+        if (directionalPositions.has({ node, direction })) {
             // We've seen this position before, so it's a loop
-            resetGrid();
-
             throw new Error('Loop detected');
         }
 
-        directionalPositions.add({ row, col, direction });
+        directionalPositions.add({ node, direction });
     }
 
-    resetGrid();
-
     return positions;
-}
-
-function drawDirection(direction: Direction) {
-    return DirectionsToChars[direction] ?? 'X';
 }
