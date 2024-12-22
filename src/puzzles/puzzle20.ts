@@ -1,35 +1,36 @@
 import { Puzzle } from './Puzzle';
 import { Maze, MazeNode } from '~/types/Maze';
+import { Grid } from '~/types/Grid';
 
 export const puzzle20 = new Puzzle({
     day: 20,
     parseInput: (fileData, { example }) => {
-        const maze = Maze.fromMazeString(fileData);
-        const start = maze.find((node) => node?.char === 'S')!;
-        const end = maze.find((node) => node?.char === 'E')!;
-        return {
-            maze,
-            start: start!,
-            end: end!,
-            isExample: example,
-        };
-    },
-    part1: ({ maze, start, end, isExample }) => {
-        const timeSavedPerCheat = getTimeSavedPerCheat({
+        const { maze, start, end } = Maze.fromMazeString(fileData);
+        if (!start || !end) {
+            throw new Error('No start or end found');
+        }
+        const path = getPath({
             maze,
             start,
             end,
+        });
+        return {
+            path,
+            isExample: example,
+        };
+    },
+    part1: ({ path, isExample }) => {
+        const timeSavedPerCheat = getTimeSavedPerCheat({
+            path,
             maxCheatLength: 2,
             minTimeSaved: isExample ? 1 : 100,
         });
 
         return timeSavedPerCheat.size;
     },
-    part2: ({ maze, start, end, isExample }) => {
+    part2: ({ path, isExample }) => {
         const timeSavedPerCheat = getTimeSavedPerCheat({
-            maze,
-            start,
-            end,
+            path,
             maxCheatLength: 20,
             minTimeSaved: isExample ? 1 : 100,
         });
@@ -38,16 +39,46 @@ export const puzzle20 = new Puzzle({
     },
 });
 
-function getTimeSavedPerCheat({
+/**
+ * Get the path from start to end in the maze in order to narrow our search space.
+ * The input only has a single path from start to end.
+ */
+function getPath({
     maze,
     start,
     end,
-    maxCheatLength,
-    minTimeSaved,
 }: {
     maze: Maze;
     start: MazeNode;
     end: MazeNode;
+}) {
+    const path: MazeNode[] = [start];
+    const nodesSeen = new Set<MazeNode>();
+    nodesSeen.add(start);
+
+    let node = start;
+    while (node !== end) {
+        const neighbors = maze.getOrthogonalNeighborsOf(node.row, node.col);
+        const nextNode = neighbors.find((neighbor) => {
+            return !neighbor.obstacle && !nodesSeen.has(neighbor);
+        });
+        if (!nextNode) {
+            throw new Error('No path found');
+        }
+        path.push(nextNode);
+        nodesSeen.add(nextNode);
+        node = nextNode;
+    }
+
+    return path;
+}
+
+function getTimeSavedPerCheat({
+    path,
+    maxCheatLength,
+    minTimeSaved,
+}: {
+    path: MazeNode[];
     maxCheatLength: number;
     minTimeSaved: number;
 }) {
@@ -55,71 +86,40 @@ function getTimeSavedPerCheat({
         throw new Error('Cheat must be at least 2');
     }
 
-    const originalTime = maze.score({
-        start,
-        end,
-    });
-
-    const distancesToEnd = new Map<MazeNode, number>();
-    distancesToEnd.set(start, originalTime);
-    distancesToEnd.set(end, 0);
+    const originalTime = path.length;
+    const timeToBeat = originalTime - minTimeSaved;
 
     const timeSavedPerCheat = new Map<string, number>();
 
-    maze.forEach((jumpStart) => {
-        if (!jumpStart || jumpStart.obstacle) {
-            return;
-        }
-
-        const timeToJump = maze.score({
-            start,
-            end: jumpStart,
-        });
-        if (timeToJump === Infinity || jumpStart === end) {
-            return;
-        }
-
+    path.forEach((jumpStart, timeToJump) => {
         for (
-            let jumpDistance = 2;
-            jumpDistance < maxCheatLength + 1;
-            jumpDistance++
+            let iJumpEnd = timeToJump + minTimeSaved;
+            iJumpEnd < path.length;
+            iJumpEnd++
         ) {
-            if (timeToJump + jumpDistance >= originalTime) {
+            const jumpEnd = path[iJumpEnd]!;
+            const jumpDistance = Grid.manhattanDistance(jumpStart, jumpEnd);
+            const timeToEnd = path.length - 1 - iJumpEnd;
+
+            const newTime = timeToJump + jumpDistance + timeToEnd;
+
+            if (
+                jumpEnd === jumpStart ||
+                jumpDistance < 2 ||
+                jumpDistance > maxCheatLength ||
+                newTime > timeToBeat
+            ) {
                 continue;
             }
 
-            const jumpEnds = maze.getNAway(
-                jumpStart,
-                jumpDistance,
-                (n) => !n.obstacle,
-            );
+            const key = [
+                jumpStart.row,
+                jumpStart.col,
+                jumpEnd.row,
+                jumpEnd.col,
+            ].join(',');
 
-            for (const jumpEnd of jumpEnds) {
-                const timeToEnd =
-                    distancesToEnd.get(jumpEnd) ??
-                    maze.score({
-                        start: jumpEnd,
-                        end,
-                    });
-                distancesToEnd.set(jumpEnd, timeToEnd);
-
-                const newTime = timeToJump + jumpDistance + timeToEnd;
-                const timeSaved = originalTime - newTime;
-
-                if (timeSaved >= minTimeSaved) {
-                    const key = [
-                        jumpStart.row,
-                        jumpStart.col,
-                        jumpEnd.row,
-                        jumpEnd.col,
-                    ].join(',');
-
-                    timeSavedPerCheat.set(
-                        key,
-                        Math.max(timeSavedPerCheat.get(key) ?? 0, timeSaved),
-                    );
-                }
-            }
+            timeSavedPerCheat.set(key, originalTime - newTime);
         }
     });
 

@@ -48,8 +48,12 @@ export class Maze extends Grid<MazeNode> {
         block: string,
         {
             obstacleChar = '#',
+            startChar = 'S',
+            endChar = 'E',
         }: {
             obstacleChar?: string;
+            startChar?: string;
+            endChar?: string;
         } = {},
     ) {
         const data = parseStringBlock(block);
@@ -60,16 +64,38 @@ export class Maze extends Grid<MazeNode> {
             height,
         });
 
+        const obstacles: MazeNode[] = [];
+        const nonObstacles: MazeNode[] = [];
+        let start: MazeNode | undefined;
+        let end: MazeNode | undefined;
+
         if (obstacleChar) {
             maze.forEach((node, row, col) => {
                 if (node) {
                     node.char = data[row]?.[col];
                     node.obstacle = node.char === obstacleChar;
+                    if (node.obstacle) {
+                        obstacles.push(node);
+                    } else {
+                        nonObstacles.push(node);
+                    }
+                    if (node.char === startChar) {
+                        start = node;
+                    }
+                    if (node.char === endChar) {
+                        end = node;
+                    }
                 }
             });
         }
 
-        return maze;
+        return {
+            maze,
+            obstacles,
+            nonObstacles,
+            start,
+            end,
+        };
     }
 
     score({
@@ -87,6 +113,7 @@ export class Maze extends Grid<MazeNode> {
 
         queue.process((node) => {
             if (node === end) {
+                queue.reset();
                 return;
             }
 
