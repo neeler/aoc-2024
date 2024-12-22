@@ -65,12 +65,11 @@ AoC ${year} Day ${this.config.day}
         );
 
         if (!this.config.skipPart1) {
+            timer.reset();
             const exampleData = example
                 ? this.getExampleData({ part: 1 })
                 : undefined;
             if (exampleData) {
-                timer.reset();
-
                 const result = await (
                     this.config.example1 ?? this.config.part1
                 )(exampleData);
@@ -83,12 +82,11 @@ AoC ${year} Day ${this.config.day}
                 });
             }
 
+            timer.reset();
             const puzzleData = mainProblem
                 ? this.getPuzzleData({ part: 1 })
                 : undefined;
             if (puzzleData) {
-                timer.reset();
-
                 const result = await this.config.part1(puzzleData);
 
                 printResult({
@@ -101,12 +99,11 @@ AoC ${year} Day ${this.config.day}
         }
 
         if (!this.config.skipPart2) {
+            timer.reset();
             const exampleData = example
                 ? this.getExampleData({ part: 2 })
                 : undefined;
             if (exampleData) {
-                timer.reset();
-
                 const result = await (
                     this.config.example2 ?? this.config.part2
                 )(exampleData);
@@ -119,12 +116,11 @@ AoC ${year} Day ${this.config.day}
                 });
             }
 
+            timer.reset();
             const puzzleData = mainProblem
                 ? this.getPuzzleData({ part: 2 })
                 : undefined;
             if (puzzleData) {
-                timer.reset();
-
                 const result = await this.config.part2(puzzleData);
 
                 printResult({
