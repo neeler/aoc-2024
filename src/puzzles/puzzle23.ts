@@ -1,6 +1,5 @@
 import { Puzzle } from './Puzzle';
 import { splitFilter } from '~/util/parsing';
-import { Queue } from '~/types/Queue';
 
 export const puzzle23 = new Puzzle({
     day: 23,
@@ -22,7 +21,7 @@ export const puzzle23 = new Puzzle({
         });
         return {
             connections,
-            computers,
+            computers: [...computers].sort(),
         };
     },
     part1: ({ connections, computers }) => {
@@ -40,12 +39,15 @@ export const puzzle23 = new Puzzle({
                     }
                     if (connectionsToComputer.has(connection2)) {
                         trios.add(
-                            graphKey([computer, connection, connection2]),
+                            [computer, connection, connection2]
+                                .sort()
+                                .join(','),
                         );
                     }
                 }
             }
         }
+
         return [
             ...trios
                 .keys()
@@ -53,68 +55,25 @@ export const puzzle23 = new Puzzle({
         ].length;
     },
     part2: ({ connections, computers }) => {
-        const queue = new Queue<{
-            key: string;
-            complete: Set<string>;
-            remaining: Set<string>;
-        }>();
+        const networks: string[][] = [];
+
+        let maxNetworkLength = 0;
+        let maxNetwork: string[] = [];
+
         for (const computer of computers) {
-            queue.add({
-                key: computer,
-                complete: new Set([computer]),
-                remaining: connections.get(computer)!,
-            });
-        }
-
-        const completesSeen = new Set<string>();
-        let maxLength = 0;
-        let maxKey = '';
-
-        queue.process(({ key, complete, remaining }) => {
-            if (remaining.size === 0) {
-                if (key.length > maxLength) {
-                    maxLength = key.length;
-                    maxKey = key;
-                }
-                return;
-            }
-
-            for (const node of remaining) {
-                const nextComplete = new Set(complete);
-                nextComplete.add(node);
-
-                const nextKey = graphKey(nextComplete);
-                if (completesSeen.has(nextKey)) {
-                    continue;
-                }
-
-                completesSeen.add(nextKey);
-
-                const nextRemaining = new Set<string>();
-                for (const n of connections.get(node)!) {
-                    if (remaining.has(n)) {
-                        nextRemaining.add(n);
+            const connected = connections.get(computer)!;
+            for (const network of networks) {
+                if (network.every((node) => connected.has(node))) {
+                    network.push(computer);
+                    if (network.length > maxNetworkLength) {
+                        maxNetworkLength = network.length;
+                        maxNetwork = network;
                     }
                 }
-
-                queue.add({
-                    key: nextKey,
-                    complete: nextComplete,
-                    remaining: nextRemaining,
-                });
             }
-        });
+            networks.push([computer]);
+        }
 
-        return maxKey;
+        return maxNetwork.join(',');
     },
 });
-
-/**
- * Generate a key for a graph.
- */
-function graphKey(nodes: string[] | Set<string>) {
-    if (nodes instanceof Set) {
-        nodes = [...nodes];
-    }
-    return nodes.sort().join(',');
-}
